@@ -4,6 +4,7 @@
   "description": "my first socket.io app",
   "dependencies": {
     "express": "^4.10.2",
+    "pg": "^4.5.3",
     "socket.io": "^1.4.5"
   }
 }
