@@ -17,10 +17,6 @@ app.get('/agent', function (req, res) {
 });
 
 
-app.get('/contacto', function(req, res){
-  res.send('<h1>Contactos</h1> <p>Mi lista de contacto</p>');
- });
-
 // usernames which are currently connected to the chat
 var usernames = {};
 
