@@ -5,6 +5,19 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+
+
+var pg = require('pg');
+
+// la BD se debe crear antes de ejecutar este script
+var connectionString = process.env.DATABASE_URL || 'postgres://postgres:123456@localhost:5432/mensajero';
+
+var client = new pg.Client(connectionString);
+client.connect();
+
+
+
+
 //app.listen(8080);
 
 // routing
@@ -56,6 +69,11 @@ io.sockets.on('connection', function (socket) {
 		socket.broadcast.to(currentroom).emit('updatechat', 'MENSAJERO RTC', username + ' se ha conectado a esta sala');
 		socket.emit('updaterooms', rooms, currentroom);
 		console.log('Se conecto el usuario: ' + username);
+
+		var query = client.query("INSERT INTO msjsolicitudes(usuario,mensaje,fechahora) VALUES ($1,$2,CURRENT_TIMESTAMP)", [username,'se conecto el usuario'], function(err, result) {
+          console.log(result);
+         })
+
 	 }
 	});
 
