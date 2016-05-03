@@ -1,18 +1,61 @@
+<style>
+
+#msjuser   {color:blue;}
+
+</style>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>
-	var socket = io.connect('http://localhost:8080');
-
+    // la URL que se le pasa io.connect es / para que tome la ip local del cliente
+	var socket = io.connect('/');
+    var localusername ='';
 	// on connection to server, ask for user's name with an anonymous callback
 	socket.on('connect', function(){
 		// call the server-side function 'adduser' and send one parameter (value of prompt)
-		socket.emit('addagent', prompt("Cual es tu nombre de Agente?"));
+        localusername = prompt("Cual es tu nombre de Agente?")
+		socket.emit('addagent', localusername);
+		socket.localusername = localusername;
 	});
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
-	socket.on('updatechat', function (username, data) {
-		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+	socket.on('updatechat', function (username, data,pos) {
+		
+		if (username === localusername){
+		   $('#conversation' + pos).append('<b>'+username + ':</b> ' + data + '<br>');
+	    }
+	    else{
+	    	$('#conversation' + pos).append('<b id="msjuser">'+ '>>' + username + ':</b> ' + data + '<br>');
+	    } 
+		//Getting the element's new height now
+        var sHeight = $('#conversation' + pos)[0].scrollHeight;
+        //Scrolling the element to the sHeight
+        $('#box_conversation' + pos).scrollTop(sHeight);
+
+        console.log(pos);
+        console.log(username);
+        console.log(data);
+        console.log(sHeight);
+
 	});
+
+
+   socket.on('newuser', function (username, roomname,pos) {
+		
+		socket.emit('addagentroom', roomname);
+
+$('#divbody').append('<div id ="box_conversation' + pos + '" style="float:left;width:600px;height:250px;overflow:auto;padding:10px;"> <div id="conversation'+pos +'"></div></div><div style="float:bottom"> <input id="data' + pos +'" style="width:600px;" /> <input type="button" id="datasend' + pos +'" value="enviar" /></div>');
+
+var script   = document.createElement("script");
+script.type  = "text/javascript";
+//script.src   = "/roomscript.js";    // use this for linked script
+script.text  = "$('#datasend" + pos +"').click( function() {var message = $('#data" + pos +"').val();$('#data" + pos +"').val('');$('#data" + pos +"').focus();socket.emit('sendchatagent', message, socket.localusername + '" + pos +"', '" + pos +"');});$('#data" + pos +"').keypress(function(e) {if(e.which == 13) {$(this).blur();$('#datasend" + pos +"').focus().click();}});"               // use this for inline script
+document.body.appendChild(script);
+
+		console.log(username);
+		console.log(roomname);
+
+	});
+
 
 	// listener, whenever the server emits 'updaterooms', this updates the room the client is in
 	socket.on('updaterooms', function(rooms, current_room) {
@@ -33,12 +76,14 @@
 
 	// on load of page
 	$(function(){
+		$('#data').focus(); // al cargar por primera vez manda el enfoque al textbox data 
 		// when the client clicks SEND
 		$('#datasend').click( function() {
 			var message = $('#data').val();
 			$('#data').val('');
+			$('#data').focus(); // manda el enfoque al input
 			// tell server to execute 'sendchat' and send along one parameter
-			socket.emit('sendchatagent', message);
+			socket.emit('sendchatagent', message, socket.localusername,'');
 		});
 
 		// when the client hits ENTER on their keyboard
@@ -48,15 +93,28 @@
 				$('#datasend').focus().click();
 			}
 		});
+
+
+
+		// when the client clicks SEND
+		
 	});
 
 </script>
-<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
-	<b>AGENTES</b>
-	<div id="rooms"></div>
+
+<div id = "divbody">
+	<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:auto;">
+		<b>AGENTES</b>
+		<div id="rooms"></div>
+	</div>
+	<div id ="box_conversation" style="float:left;width:600px;height:250px;overflow:auto;padding:10px;">
+		<div id="conversation"></div>
+	</div>
+	<div style="float:bottom">
+		<input id="data" style="width:600px;" />
+		<input type="button" id="datasend" value="enviar" />
+	</div>
 </div>
-<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
-	<div id="conversation"></div>
-	<input id="data" style="width:200px;" />
-	<input type="button" id="datasend" value="send" />
-</div>
+
+
+

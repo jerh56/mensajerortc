@@ -1,6 +1,15 @@
 //var app = require('express').createServer()
 //var io = require('socket.io').listen(app);
 
+// Logica de atenci'on
+
+// usuario se conecta al chat
+// se busca al agente que lo va a atender funcion selectuser()
+//  selectuser regresa el id del agente
+// se busca el room en el que atendera el agente funcion selectroom()
+// selectroom regresa el id del room
+//  se enlaza usuario y agente en el room disponible 
+
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
@@ -30,6 +39,11 @@ app.get('/agent', function (req, res) {
 });
 
 
+app.get('/roomscript.js', function (req, res) {
+  res.sendFile(__dirname + '/roomscript.js');
+});
+
+
 // usernames which are currently connected to the chat
 var usernames = {};
 
@@ -44,6 +58,8 @@ io.sockets.on('connection', function (socket) {
     
 	// when the client emits 'adduser', this listens and executes
 	socket.on('adduser', function(username){
+
+      var posRoom ='';	  	
       if ((username != null)  && (username !="")){
 		// store the username in the socket session for this client
 		socket.username = username;
@@ -51,22 +67,35 @@ io.sockets.on('connection', function (socket) {
         currentroom ='room1'
         for (var agentname in agentnames){
           console.log(agentnames[agentname].nombre);
-         if (agentnames[agentname].disponible === 0){
-           currentroom = agentnames[agentname].nombre;
-           agentnames[agentname].disponible = 1;
+         
+
+         if (agentnames[agentname].cantidad < 3 ){
+
+           agentnames[agentname].cantidad = agentnames[agentname].cantidad + 1;
+           posRoom = ("0" + agentnames[agentname].cantidad).slice(-2);
+           currentroom = agentnames[agentname].nombre + posRoom;
            break;
          }
-        }
+         
 
+        }
+        console.log(currentroom);
 		socket.room = currentroom;
 		// add the client's username to the global list
 		usernames[username] = username;
 		// send client to room 1
 		socket.join(currentroom);
+		
+		
+        // eco al room del agente
+		socket.broadcast.to(agentnames[agentname].nombre).emit('newuser', 'MENSAJERO RTC', currentroom, posRoom);
+
+
 		// echo to client they've connected
-		socket.emit('updatechat', 'MENSAJERO RTC', 'Te esta atendiendo ' + currentroom);
+		//socket.emit('updatechat', 'MENSAJERO RTC', 'Te esta atendiendo ' + currentroom);
+		
 		// echo to room 1 that a person has connected to their room
-		socket.broadcast.to(currentroom).emit('updatechat', 'MENSAJERO RTC', username + ' se ha conectado a esta sala');
+		socket.broadcast.to(currentroom).emit('updatechat', 'MENSAJERO RTC', username + ' se ha conectado a ' + currentroom, '');
 		socket.emit('updaterooms', rooms, currentroom);
 		console.log('Se conecto el usuario: ' + username);
 
@@ -77,54 +106,92 @@ io.sockets.on('connection', function (socket) {
 	 }
 	});
 
+  
 
 // when the client emits 'addagent', this listens and executes
 	socket.on('addagent', function(agentname){
 	if ((agentname != null)  && (agentname!="")){
          // store the username in the socket session for this client
+		
+       
 		socket.agentname = agentname;
 		// store the room name in the socket session for this client
 		socket.room = agentname;
 		
-		//disponible = 0 esta disponible
+		//cantidad = 0 esta cantidad
 		if (agentnames.length == 0){
-             agentnames[0] = ({"nombre":agentname, "disponible":0});
+             agentnames[0] = ({"nombre":agentname, "cantidad":0});
              // add the client's username to the global list
 		     rooms[0] = agentname;
             
 		}
 		else{
-            agentnames.push ({"nombre":agentname, "disponible":0});
+            agentnames.push ({"nombre":agentname, "cantidad":0});
             // add the client's username to the global list
 		    rooms[agentname] = agentname; 
      
         }
         
-		// send client to room 1
+        // Obtener numero de rooms que puede atender el agente
+
+		// send client to room por default
 		socket.join(agentname);
+		//socket.join(agentname+'02');
 		// echo to client they've connected
-		socket.emit('updatechat', 'MENSAJERO RTC', 'AGENTE: ' + agentname);
+		socket.emit('updatechat', 'MENSAJERO RTC', 'AGENTE: ' + agentname,'');
 		// echo to room 1 that a person has connected to their room
-		socket.broadcast.to(agentname).emit('updatechat', 'MENSAJERO RTC', agentname + ' es el agente disponible en esta sala');
+		socket.broadcast.to(agentname).emit('updatechat', 'MENSAJERO RTC', agentname + ' es el agente disponible en esta sala', '');
 		socket.emit('updaterooms', rooms, agentname);
 		console.log('Se conecto el agente: ' + agentname);
      }
     });
 
 
+// when the client emits 'addagent', this listens and executes
+	socket.on('addagentroom', function(agentname){
+	if ((agentname != null)  && (agentname!="")){
+         // store the username in the socket session for this client
+		
+       
+		//socket.agentname = agentname;
+		
+		
+        // Obtener numero de rooms que puede atender el agente
+
+		// send client to room por default
+		socket.join(agentname);
+		//socket.join(agentname+'02');
+		// echo to client they've connected
+		socket.emit('updatechat', 'MENSAJERO RTC', 'AGENTE: ' + agentname,'');
+		// echo to room 1 that a person has connected to their room
+		socket.broadcast.to(agentname).emit('updatechat', 'MENSAJERO RTC', agentname + ' es el agente disponible en esta sala','');
+		socket.emit('updaterooms', rooms, agentname);
+		console.log('Se conecto el agente: ' + agentname);
+     }
+    });
+
+
+
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
 		// we tell the client to execute 'updatechat' with 2 parameters
-		io.sockets.in(socket.room).emit('updatechat', socket.username, data);
-		
+		io.sockets.in(socket.room).emit('updatechat', socket.username, data,('0' + socket.room).slice(-2));
+		console.log(socket.username);
+		console.log(socket.room);
 	});
 
 
 // when the client emits 'sendchatagent', this listens and executes
-	socket.on('sendchatagent', function (data) {
+	socket.on('sendchatagent', function (data, username,pos) {
 		// we tell the client to execute 'updatechat' with 2 parameters
-		io.sockets.in(socket.room).emit('updatechat', socket.agentname, data);
-		
+		io.sockets.in(username).emit('updatechat', socket.agentname, data,pos);
+	console.log(socket.room);
+	console.log(socket.agentname);
+	console.log(data);
+	console.log(username);
+	
+       // io.sockets.in(socket.agentname + '02' ).emit('updatechat', socket.agentname, data);
+
 	});
 
 
@@ -158,6 +225,7 @@ io.sockets.on('connection', function (socket) {
 		socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.username + ' se ha desconectado');
 		socket.leave(socket.room);
 		console.log('Se desconecto el usuario: ' + socket.username);
+
        }
 
 
@@ -182,8 +250,11 @@ io.sockets.on('connection', function (socket) {
 		// echo globally that this client has left
 		socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.agentname + ' se ha desconectado');
 		socket.emit('updaterooms', rooms, socket.agentname);
+		
+		// falta modificar esta linea
 		socket.leave(socket.room);
 		console.log('Se desconecto el agente: ' + socket.agentname);
+		console.log(socket.room);
        }
 
 	});
