@@ -1,17 +1,30 @@
+<style>
+    #msjuser   {color:blue;}
+</style>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>
 	var socket = io.connect('/');
+    var localusername ='';
 
 	// on connection to server, ask for user's name with an anonymous callback
 	socket.on('connect', function(){
 		// call the server-side function 'adduser' and send one parameter (value of prompt)
-		socket.emit('adduser', prompt("Cual es tu nombre de usuario?"));
+		localusername = prompt("Cual es tu nombre de usuario?");
+		socket.emit('adduser', localusername);
+		socket.localusername = localusername;
 	});
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
 	socket.on('updatechat', function (username, data) {
-		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+
+        if (username === localusername){
+		   $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+	    }
+	    else{
+	    	$('#conversation').append('<b id="msjuser">'+ '>>' + username + ':</b> ' + data + '<br>');
+	    } 
 		//Getting the element's new height now
         var sHeight = $('#conversation')[0].scrollHeight;
         //Scrolling the element to the sHeight

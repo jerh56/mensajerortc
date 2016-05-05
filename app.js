@@ -46,8 +46,6 @@ app.get('/roomscript.js', function (req, res) {
 
 // usernames which are currently connected to the chat
 var usernames = {};
-
-
 var agentnames = new Array();
 //var agentnames = {};
 var currentroom ="";
@@ -59,12 +57,12 @@ io.sockets.on('connection', function (socket) {
 	// when the client emits 'adduser', this listens and executes
 	socket.on('adduser', function(username){
 
-      var posRoom ='';	  	
+      socket.posRoom ='';	  	
       if ((username != null)  && (username !="")){
 		// store the username in the socket session for this client
 		socket.username = username;
 		// store the room name in the socket session for this client
-        currentroom ='room1'
+        currentroom ='En espera'
         for (var agentname in agentnames){
           console.log(agentnames[agentname].nombre);
          
@@ -72,14 +70,15 @@ io.sockets.on('connection', function (socket) {
          if (agentnames[agentname].cantidad < 3 ){
 
            agentnames[agentname].cantidad = agentnames[agentname].cantidad + 1;
-           posRoom = ("0" + agentnames[agentname].cantidad).slice(-2);
-           currentroom = agentnames[agentname].nombre + posRoom;
+           socket.posRoom = ("0" + agentnames[agentname].cantidad).slice(-2);
+           currentroom = agentnames[agentname].nombre + socket.posRoom;
            break;
          }
          
 
         }
         console.log(currentroom);
+        socket.isuser = true;
 		socket.room = currentroom;
 		// add the client's username to the global list
 		usernames[username] = username;
@@ -88,7 +87,7 @@ io.sockets.on('connection', function (socket) {
 		
 		
         // eco al room del agente
-		socket.broadcast.to(agentnames[agentname].nombre).emit('newuser', 'MENSAJERO RTC', currentroom, posRoom);
+		socket.broadcast.to(agentnames[agentname].nombre).emit('newuser', 'MENSAJERO RTC',username, currentroom, socket.posRoom);
 
 
 		// echo to client they've connected
@@ -113,7 +112,7 @@ io.sockets.on('connection', function (socket) {
 	if ((agentname != null)  && (agentname!="")){
          // store the username in the socket session for this client
 		
-       
+        socket.isuser = false;
 		socket.agentname = agentname;
 		// store the room name in the socket session for this client
 		socket.room = agentname;
@@ -147,27 +146,28 @@ io.sockets.on('connection', function (socket) {
     });
 
 
-// when the client emits 'addagent', this listens and executes
-	socket.on('addagentroom', function(agentname){
-	if ((agentname != null)  && (agentname!="")){
-         // store the username in the socket session for this client
-		
-       
-		//socket.agentname = agentname;
-		
-		
-        // Obtener numero de rooms que puede atender el agente
+// Este evento sucede cuando un nuevo usuario se conecto y lo va a atender un agente
+	socket.on('addagentroom', function(roomname,agentname,username,pos){
+		if ((roomname != null)  && (roomname!="")){
+	         // store the username in the socket session for this client
+			
+	       
+			//socket.agentname = agentname;
+			
+			
+	        // Obtener numero de rooms que puede atender el agente
 
-		// send client to room por default
-		socket.join(agentname);
-		//socket.join(agentname+'02');
-		// echo to client they've connected
-		socket.emit('updatechat', 'MENSAJERO RTC', 'AGENTE: ' + agentname,'');
-		// echo to room 1 that a person has connected to their room
-		socket.broadcast.to(agentname).emit('updatechat', 'MENSAJERO RTC', agentname + ' es el agente disponible en esta sala','');
-		socket.emit('updaterooms', rooms, agentname);
-		console.log('Se conecto el agente: ' + agentname);
-     }
+			// send client to room por default
+			socket.join(roomname);
+			//socket.join(agentname+'02');
+			// echo to client they've connected
+			socket.emit('updatechat', 'MENSAJERO RTC', 'AGENTE: ' + roomname, pos);
+			// echo to room 1 that a person has connected to their room:
+			socket.broadcast.to(roomname).emit('updatechat', 'MENSAJERO RTC', 'Sala: ' + roomname, pos);
+			io.sockets.in(roomname).emit('updatechat', 'MENSAJERO RTC', 'Se conecto el usuario ' + username , pos);
+			socket.emit('updaterooms', rooms, roomname);
+			console.log('Se conecto el agente: ' + agentname);
+	     }
     });
 
 
@@ -175,7 +175,7 @@ io.sockets.on('connection', function (socket) {
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
 		// we tell the client to execute 'updatechat' with 2 parameters
-		io.sockets.in(socket.room).emit('updatechat', socket.username, data,('0' + socket.room).slice(-2));
+		io.sockets.in(socket.room).emit('updatechat', socket.username, data,socket.posRoom);
 		console.log(socket.username);
 		console.log(socket.room);
 	});
@@ -184,7 +184,7 @@ io.sockets.on('connection', function (socket) {
 // when the client emits 'sendchatagent', this listens and executes
 	socket.on('sendchatagent', function (data, username,pos) {
 		// we tell the client to execute 'updatechat' with 2 parameters
-		io.sockets.in(username).emit('updatechat', socket.agentname, data,pos);
+	io.sockets.in(username).emit('updatechat', socket.agentname, data,pos);
 	console.log(socket.room);
 	console.log(socket.agentname);
 	console.log(data);
@@ -222,6 +222,18 @@ io.sockets.on('connection', function (socket) {
 		// update list of users in chat, client-side
 		io.sockets.emit('updateusers', usernames);
 		// echo globally that this client has left
+
+		// preguntar si es usuario para avisar al agente que se desconecto
+
+		if (socket.isuser === true){
+			io.sockets.in(socket.room).emit('updatechat', 'MENSAJERO RTC', "Se desconecto el usuario " + socket.username, socket.posRoom);
+			console.log("Se desconecto el usuario " + socket.username)
+		}
+		else{
+			io.sockets.in(socket.room).emit('updatechat', 'MENSAJERO RTC', "Se desconecto el agente " + socket.agentname, socket.posRoom);
+	        console.log("Se desconecto el agente " + socket.agentname)
+			
+		}
 		socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.username + ' se ha desconectado');
 		socket.leave(socket.room);
 		console.log('Se desconecto el usuario: ' + socket.username);

@@ -108,6 +108,7 @@ body, html {
 	    	$('#conversation' + pos).append('<b id="msjuser">'+ '>>' + username + ':</b> ' + data + '<br>');
 	    } 
 		//Getting the element's new height now
+		alert(data + '  ' + pos);
         var sHeight = $('#conversation' + pos)[0].scrollHeight;
         //Scrolling the element to the sHeight
         $('#box_conversation' + pos).scrollTop(sHeight);
@@ -120,9 +121,9 @@ body, html {
 	});
 
 
-   socket.on('newuser', function (username, roomname,pos) {
+   socket.on('newuser', function (emisor, username, roomname,pos) {
 		
-		socket.emit('addagentroom', roomname);
+		socket.emit('addagentroom', roomname, localusername,username, pos);
 
 		//$('#divbody').append('<div id ="box_conversation' + pos + '" style="float:left;width:600px;height:250px;overflow:auto;padding:10px;"> <div id="conversation'+pos +'"></div></div><div style="float:bottom"> <input id="data' + pos +'" style="width:600px;" /> <input type="button" id="datasend' + pos +'" value="enviar" /></div>');
 
