@@ -92,10 +92,10 @@ body, html {
     var localusername ='';
 	// on connection to server, ask for user's name with an anonymous callback
 	socket.on('connect', function(){
-		// call the server-side function 'adduser' and send one parameter (value of prompt)
-        localusername = prompt("Cual es tu nombre de Agente?")
-		socket.emit('addagent', localusername);
-		socket.localusername = localusername;
+		  // call the server-side function 'adduser' and send one parameter (value of prompt)
+      localusername = prompt("Cual es tu nombre de Agente?")
+		  socket.emit('addagent', localusername);
+		  socket.localusername = localusername;
 	});
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
@@ -106,17 +106,17 @@ body, html {
 	    }
 	    else{
 	    	$('#conversation' + pos).append('<b id="msjuser">'+ '>>' + username + ':</b> ' + data + '<br>');
-	    } 
+	   } 
 		//Getting the element's new height now
-		alert(data + '  ' + pos);
-        var sHeight = $('#conversation' + pos)[0].scrollHeight;
-        //Scrolling the element to the sHeight
-        $('#box_conversation' + pos).scrollTop(sHeight);
+		//alert(data + '  ' + pos);
+    var sHeight = $('#conversation' + pos)[0].scrollHeight;
+    //Scrolling the element to the sHeight
+    $('#box_conversation' + pos).scrollTop(sHeight);
 
-        console.log(pos);
-        console.log(username);
-        console.log(data);
-        console.log(sHeight);
+    console.log(pos);
+    console.log(username);
+    console.log(data);
+    console.log(sHeight);
 
 	});
 
@@ -198,11 +198,6 @@ body, html {
 		<input id="data" style="width:600px;" />
 		<input type="button" id="datasend" value="enviar" />
 	</div>
-
-
-
 </div>
-
 <ul id="tabsmsj" class="tabs">
-       
 </ul>
