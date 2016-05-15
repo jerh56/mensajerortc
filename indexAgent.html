@@ -137,30 +137,30 @@ $( document ).ready(function() {
 
     // la URL que se le pasa io.connect es / para que tome la ip local del cliente
 	  
-    var localusername ='';
+    var agentname ='';
 	// on connection to server, ask for user's name with an anonymous callback
 	socket.on('connect', function(){
 		  // call the server-side function 'adduser' and send one parameter (value of prompt)
-      localusername = prompt("Cual es tu nombre de Agente?")
-		  socket.emit('addagent', localusername);
-		  socket.localusername = localusername;
+      agentname = prompt("Cual es tu nombre de Agente?")
+		  socket.emit('addagent', agentname);
+		  socket.agentname = agentname;
 	});
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
 	socket.on('updatechat', function (username, data,pos,roomid) {
-		if (roomid == null) {
-     pos = pos;
-   }
-   else{
-     pos = roomid;
-   }
-     console.log(pos);
-     console.log(roomid);
-     console.log(username);
+    if (roomid == null) {
+      pos = pos;
+    }
+      else{
+      pos = roomid;
+    }
+    console.log(pos);
+    console.log(roomid);
+    console.log(username);
 
 
-    //pos = roomid;
-		if (username === localusername){
+    
+		if (username === agentname){
 		   $('#conversation' + pos).append('<p class="triangle-isosceles"> <b>'+username + ':</b> ' + data + '</p>');
 	    }
 	    else{
@@ -182,7 +182,7 @@ $( document ).ready(function() {
 
    socket.on('newuser', function (emisor, username, roomid,pos) {
 		
-		socket.emit('addagentroom', roomid, localusername,username, pos);
+		socket.emit('addagentroom', roomid, agentname,username, pos);
     
    if (roomid == null) {
      pos = pos;

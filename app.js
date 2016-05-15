@@ -65,7 +65,7 @@ var currentroom ="";
 // rooms which are currently available in chat
 var rooms = {};
 
-
+//Cada ciertos milisegundos ejecuta esta funcion para buscar agentes disponibles
 setInterval(function(){
   console.log('test');
   
@@ -99,7 +99,13 @@ setInterval(function(){
 
 					// echo to client they've connected
 					//io.sockets.in(currentroom).emit('updatechat', 'MENSAJERO RTC', 'Te esta atendiendo ' + currentroom);
-					
+					//io.sockets.in(socket.room).emit('updatechat', socket.username, data,socket.posRoom, socket.room);
+		            //console.log(socket.username);
+		             
+
+					io.sockets.in(currentroom).emit('updatechat', 'MENSAJERO RTC','Te esta atendiendo ' + agentnames[agentname].nombre, posRoom,currentroom);
+		           
+
 					// echo to room 1 that a person has connected to their room
 					//io.sockets.broadcast.to(agentroom).emit('updatechat', 'MENSAJERO RTC', username + ' se ha conectado a ' + currentroom, '');
 					//io.sockets.emit('updaterooms', rooms, agentroom);
@@ -174,12 +180,15 @@ io.sockets.on('connection', function (socket) {
 	            console.log(userlist);
 			}
 
-			 socket.isuser = true;
+			socket.isuser = true;
 			socket.room = currentroom;
 			// add the client's username to the global list
 			usernames[username] = username;
 			// send client to room 1
 			socket.join(currentroom);
+            socket.emit('updatechat', 'MENSAJERO RTC', 'Todos nuestros agentes estan ocupados, por favor espere');
+		
+
         }
         else{
 	        console.log(currentroom);
@@ -200,7 +209,8 @@ io.sockets.on('connection', function (socket) {
 
 
 			// echo to client they've connected
-			socket.emit('updatechat', 'MENSAJERO RTC', 'Te esta atendiendo ' + currentroom);
+			//El evento updatechat envia usuario que emite, Datos, Posicion (se descontinuara), ID del room (solo en caso de que el mensaje vaya para un usuario y no un agente)
+			socket.emit('updatechat', 'MENSAJERO RTC', 'Te esta atendiendo ' + currentroom, socket.posRoom, currentroom);
 			
 			// echo to room 1 that a person has connected to their room
 			socket.broadcast.to(agentroom).emit('updatechat', 'MENSAJERO RTC', username + ' se ha conectado a ' + currentroom, '');
@@ -276,11 +286,11 @@ io.sockets.on('connection', function (socket) {
 			socket.join(idroom);
 			//socket.join(agentname+'02');
 			// echo to client they've connected
-			socket.emit('updatechat', 'MENSAJERO RTC', 'Bienvenido: ' + agentname, pos);
+			socket.emit('updatechat', 'MENSAJERO RTC', 'Bienvenido: ' + agentname, pos, idroom);
 			// echo to room 1 that a person has connected to their room:
-			socket.broadcast.to(idroom).emit('updatechat', 'MENSAJERO RTC', 'Sala: ' + idroom, pos);
+			socket.broadcast.to(idroom).emit('updatechat', 'MENSAJERO RTC', 'Sala: ' + idroom, pos, idroom);
 			
-			io.sockets.in(idroom).emit('updatechat', 'MENSAJERO RTC', 'Se conecto el usuario ' + username , pos);
+			io.sockets.in(idroom).emit('updatechat', 'MENSAJERO RTC', 'Se conecto el usuario ' + username , pos, idroom);
 			socket.emit('updaterooms', rooms, idroom);
 			console.log('Se conecto el agente: ' + agentname);
 	     }
