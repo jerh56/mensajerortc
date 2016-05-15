@@ -1,11 +1,14 @@
 <style>
-    #msjuser   {color:blue;}
+    #msjuser   {color:red;}
 </style>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>
-	var socket = io.connect('/');
+  var socket = io.connect('/',{'forceNew': true });
+  $( document ).ready(function() {
+    console.log( "ready!" );
+	
     var localusername ='';
 
 	// on connection to server, ask for user's name with an anonymous callback
@@ -15,6 +18,11 @@
 		socket.emit('adduser', localusername);
 		socket.localusername = localusername;
 	});
+
+    socket.on('reconnecting', function(){
+		console.log("Reconectando");
+	});
+
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
 	socket.on('updatechat', function (username, data) {
@@ -73,7 +81,7 @@
 			}
 		});
 	});
-
+  });
 </script>
 <div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:auto;">
 	<b>AGENTES</b>
