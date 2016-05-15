@@ -39,6 +39,11 @@ app.get('/agent', function (req, res) {
   res.sendFile(__dirname + '/indexAgent.html');
 });
 
+app.get('/css/style.css', function (req, res) {
+  res.sendFile(__dirname + '/css/style.css');
+  console.log(' sending /css/style.css');
+});
+
 app.post('/login', function (req, res) {
 
   // TODO: validate the actual user user
