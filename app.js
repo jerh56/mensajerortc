@@ -61,14 +61,14 @@ app.post('/login', function (req, res) {
 });
 
 // usernames which are currently connected to the chat
-var usernames = {};
+var usernames = new Array();
 
 var userlist = new Array();
 var agentnames = new Array();
 //var agentnames = {};
 var currentroom ="";
 // rooms which are currently available in chat
-var rooms = {};
+//var rooms = new Array();
 
 //Cada ciertos milisegundos ejecuta esta funcion para buscar agentes disponibles
 setInterval(function(){
@@ -119,11 +119,7 @@ setInterval(function(){
 					var query = client.query("INSERT INTO msjsolicitudes(usuario,mensaje,fechahora) VALUES ($1,$2,CURRENT_TIMESTAMP)", [username,'se conecto el usuario'], function(err, result) {
 			          console.log(result);
 			         })
-
-	                //delete userlist[username]; 
-	                console.log(userlist);
 		            userlist.splice(posusername,1);
-		            console.log(userlist);
 		            break;
 	  		   }    
 
@@ -188,7 +184,21 @@ io.sockets.on('connection', function (socket) {
 			socket.isuser = true;
 			socket.room = currentroom;
 			// add the client's username to the global list
-			usernames[username] = username;
+			if (usernames.length == 0){
+	             usernames[0] = ({"nombre":username, "socketid":socket.id});
+	             // add the client's username to the wait list
+			}
+			else{
+	            usernames.push ({"nombre":username, "socketid":socket.id});
+	            // add the client's username to the wait list
+	           
+			}
+
+
+			//usernames[username] = username;
+			
+
+
 			// send client to room 1
 			socket.join(currentroom);
             socket.emit('updatechat', 'MENSAJERO RTC', 'Todos nuestros agentes estan ocupados, por favor espere');
@@ -201,7 +211,19 @@ io.sockets.on('connection', function (socket) {
 	        socket.isuser = true;
 			socket.room = currentroom;
 			// add the client's username to the global list
-			usernames[username] = username;
+			if (usernames.length == 0){
+	             usernames[0] = ({"nombre":username, "socketid":socket.id});
+	             // add the client's username to the wait list
+			}
+			else{
+	            usernames.push ({"nombre":username, "socketid":socket.id});
+	            // add the client's username to the wait list
+	           
+			}
+
+			//usernames[username] = username;
+			
+
 			// send client to room 1
 			socket.join(currentroom);
 			
@@ -219,7 +241,7 @@ io.sockets.on('connection', function (socket) {
 			
 			// echo to room 1 that a person has connected to their room
 			socket.broadcast.to(agentroom).emit('updatechat', 'MENSAJERO RTC', username + ' se ha conectado a ' + currentroom, '');
-			socket.emit('updaterooms', rooms, agentroom);
+			socket.emit('updaterooms', agentnames, agentroom);
 			console.log('Se conecto el usuario: ' + username);
 
 			var query = client.query("INSERT INTO msjsolicitudes(usuario,mensaje,fechahora) VALUES ($1,$2,CURRENT_TIMESTAMP)", [username,'se conecto el usuario'], function(err, result) {
@@ -246,17 +268,20 @@ io.sockets.on('connection', function (socket) {
 
 		socket.room = idroom;
 		
+
+
+
 		//cantidad = 0 esta cantidad
 		if (agentnames.length == 0){
              agentnames[0] = ({"nombre":agentname, "cantidad":0, "idroom":idroom});
              // add the client's username to the global list
-		     rooms[0] = agentname;
+		     //rooms[0] = agentname;
             
 		}
 		else{
             agentnames.push ({"nombre":agentname, "cantidad":0, "idroom":idroom});
             // add the client's username to the global list
-		    rooms[agentname] = agentname; 
+		    //rooms[agentname] = agentname; 
      
         }
         
@@ -269,7 +294,7 @@ io.sockets.on('connection', function (socket) {
 		socket.emit('updatechat', 'MENSAJERO RTC', 'AGENTE: ' + agentname,'');
 		// echo to room 1 that a person has connected to their room
 		socket.broadcast.to(idroom).emit('updatechat', 'MENSAJERO RTC', agentname + ' es el agente disponible en esta sala', '');
-	    socket.emit('updaterooms', rooms, agentname);
+	    socket.emit('updaterooms', agentnames, agentname);
 		socket.emit('conectedagent',idroom);
 		console.log('Se conecto el agente: ' + agentname);
      }
@@ -296,7 +321,7 @@ io.sockets.on('connection', function (socket) {
 			socket.broadcast.to(idroom).emit('updatechat', 'MENSAJERO RTC', 'Sala: ' + idroom, pos, idroom);
 			
 			io.sockets.in(idroom).emit('updatechat', 'MENSAJERO RTC', 'Se conecto el usuario ' + username , pos, idroom);
-			socket.emit('updaterooms', rooms, idroom);
+			socket.emit('updaterooms', agentnames, idroom);
 			console.log('Se conecto el agente: ' + agentname);
 	     }
     });
@@ -338,79 +363,94 @@ io.sockets.on('connection', function (socket) {
 		// update socket session room title
 		socket.room = newroom;
 		socket.broadcast.to(newroom).emit('updatechat', 'MENSAJERO RTC', socket.username+' se ha unido a esta sala');
-		socket.emit('updaterooms', rooms, newroom);
+		socket.emit('updaterooms', agentnames, newroom);
 	});
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
 		
 
-        if (socket.username != undefined){
+        if (socket.isuser === true){
           // remove the username from global usernames list
 		
-		   delete usernames[socket.username];
+		   //delete usernames[socket.username];
           
+           for (var posusername in usernames){
+	              
+	              if (usernames[posusername].socketid === socket.id ){
+					 console.log("se elimino el usuario " + usernames[posusername].nombre)
+					 console.log(usernames);
+			         usernames.splice(posusername,1);
+			         console.log(usernames);
+		             
+		             break;
+	              }
+	           }	
+		   
 		
-		// update list of users in chat, client-side
-		io.sockets.emit('updateusers', usernames);
-		// echo globally that this client has left
+			// update list of users in chat, client-side
+			io.sockets.emit('updateusers', usernames);
+			// echo globally that this client has left
 
-		// preguntar si es usuario para avisar al agente que se desconecto
+			// preguntar si es usuario para avisar al agente que se desconecto
 
-		if (socket.isuser === true){
+			
 			io.sockets.in(socket.room).emit('updatechat', 'MENSAJERO RTC', "Se desconecto el usuario " + socket.username, socket.posRoom);
 			console.log("Se desconecto el usuario " + socket.username)
-		}
-		else{
-			io.sockets.in(socket.room).emit('updatechat', 'MENSAJERO RTC', "Se desconecto el agente " + socket.agentname, socket.posRoom);
-	        console.log("Se desconecto el agente " + socket.agentname)
 			
-		}
-		socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.username + ' se ha desconectado');
-		socket.leave(socket.room);
-		console.log('Se desconecto el usuario: ' + socket.username);
+			
+			socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.username + ' se ha desconectado');
+			socket.leave(socket.room);
+			console.log('Se desconecto el usuario: ' + socket.username);
 
        }
+       else{
+			if (socket.isuser === false){
+	          // remove the username from global usernames list
+			
+			   //delete agentnames[socket.agentname];
+			   //for (var PosAgentName in agentnames){
+	           //PosAgentName guarda la posicion o index del elemento del arreglo
+	           // if (agentnames[PosAgentName].nombre === socket.agentname){
+	           //    agentnames.splice(PosAgentName,1);
+	           //  break;
+	           //  }
+	          // }
+
+			   //delete rooms[socket.agentname];
+			   console.log(rooms);
+			   rooms.splice(rooms[socket.agentname],1);
+			   console.log(rooms);
+			   for (var posagentname in agentnames){
+	              //console.log(agentnames[agentname].nombre);
+	              if (agentnames[posagentname].idroom === socket.room ){
+					 console.log("se elimino al agente " + agentnames[posagentname].nombre)
+					 console.log(agentnames);
+			         agentnames.splice(posagentname,1);
+			         console.log(agentnames);
+		             //delete agentnames[agentname];
+		             break;
+	              }
+	           }	
 
 
-       if (socket.agentname != undefined){
-          // remove the username from global usernames list
-		
-		   //delete agentnames[socket.agentname];
-		   //for (var PosAgentName in agentnames){
-           //PosAgentName guarda la posicion o index del elemento del arreglo
-           // if (agentnames[PosAgentName].nombre === socket.agentname){
-           //    agentnames.splice(PosAgentName,1);
-           //  break;
-           //  }
-          // }
+			
+			// update list of users in chat, client-side
+			io.sockets.emit('updateusers', usernames);
+			// echo globally that this client has left
 
-		   delete rooms[socket.agentname]; 	
-		   for (var agentname in agentnames){
-              //console.log(agentnames[agentname].nombre);
-              if (agentnames[agentname].idroom === socket.room ){
-				console.log("se elimino al agente " + agentnames[agentname].nombre)
-	            delete agentnames[agentname];
-                
-	            break;
-              }
-           }	
+			//io.sockets.in(socket.room).emit('updatechat', 'MENSAJERO RTC', "Se desconecto el agente " + socket.agentname, socket.posRoom);
+		    socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.agentname + ' se ha desconectado');
+			socket.emit('updaterooms', agentnames, socket.agentname);
+			
+			// falta modificar esta linea
+			socket.leave(socket.room);
+			console.log('Se desconecto el agente: ' + socket.agentname);
+			console.log(socket.room);
+	       }
 
-
-		
-		// update list of users in chat, client-side
-		io.sockets.emit('updateusers', usernames);
-		// echo globally that this client has left
-		socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.agentname + ' se ha desconectado');
-		socket.emit('updaterooms', rooms, socket.agentname);
-		
-		// falta modificar esta linea
-		socket.leave(socket.room);
-		console.log('Se desconecto el agente: ' + socket.agentname);
-		console.log(socket.room);
        }
-
-	});
+    });
 });
 
     

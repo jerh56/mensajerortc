@@ -88,15 +88,11 @@ $( document ).ready(function() {
 
 	// listener, whenever the server emits 'updaterooms', this updates the room the client is in
 	socket.on('updaterooms', function(rooms, current_room) {
-		$('#rooms').empty();
-		$.each(rooms, function(key, value) {
-			if(value == current_room){
-				$('#rooms').append('<div>' + value + '</div>');
-			}
-			else {
-				$('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
-			}
-		});
+	$('#agents').empty();
+    $.each(rooms, function(key, value) {
+       $('#agents').append('<div>' + value.nombre + '</div>');
+      
+    });
 	});
 
 // listener, whenever the server emits 'updaterooms', this updates the room the client is in
@@ -140,7 +136,7 @@ $( document ).ready(function() {
 <div id = "divbody">
 	<div style="float:left;width:100px;border-right:1px solid black;height:100px;padding:10px;overflow:auto;">
 		<b>AGENTES</b>
-		<div id="rooms"></div>
+		<div id="agents"></div>
 	</div>
 	<div id ="box_conversation" style="float:left;width:600px;height:100px;overflow:auto;padding:10px;">
 		<div id="conversation"></div>
