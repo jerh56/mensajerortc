@@ -15,7 +15,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var pg = require('pg');
 var uuid = require('uuid4');
- 
+var port = process.env.PORT || 5000; 
 
 
 
@@ -455,9 +455,9 @@ io.sockets.on('connection', function (socket) {
 
     
 
-http.listen(8080, function(){
+http.listen(port, function(){
 
-  console.log('Escuchando en  *:8080');
+  console.log('Escuchando en  *:' + port);
   console.log('MENSAJERO RTC 1.0');
 
  
