@@ -23,6 +23,7 @@ $( document ).ready(function() {
 	});
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
+  //username de quien envia el mensaje
 	socket.on('updatechat', function (username, data,pos,roomid) {
     if (roomid == null) {
       pos = pos;
@@ -34,14 +35,18 @@ $( document ).ready(function() {
     console.log(roomid);
     console.log(username);
     console.log(data);
-
-    
+    var strTab =  $('#tab-' + pos).text;
+    $('#tab-' + pos).text(  strSlice(0, strTab.lastIndexOf("esta escribiendo")-1)); // quita el mensaje de que el usuario esta escribiendo
+     
 		if (username === agentname){
 		   $('#conversation' + pos).append('<p class="triangle-isosceles"> <b>'+username + ':</b> ' + data + '</p>');
-	    }
+       
+   
+
+      }
 	    else{
 	    	$('#conversation' + pos).append('<p class="triangle-isosceles top"> <b>'+ '>>' + username + ':</b> ' + data + '</p>');
-        $('#tab-' + pos).text( username ); //quita el mensaje de que el usuario esta escribiendo
+        
 	   } 
 		//Getting the element's new height now
 		//alert(data + '  ' + pos);
@@ -74,7 +79,7 @@ socket.on('istyping', function (username, data,pos,roomid) {
 
     
     
-       $('#tab-' + pos).text( username + ' esta escribiendo');
+       $('#tab-' + pos).text( username + ' esta escribiendo...');
       // settimetodrop(username,pos);        
 
   });
