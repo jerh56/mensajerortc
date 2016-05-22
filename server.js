@@ -20,10 +20,10 @@ var port = process.env.PORT || 5000;
 
 
 // la BD se debe crear antes de ejecutar este script
-var connectionString = process.env.DATABASE_URL || 'postgres://postgres:123456@localhost:5432/mensajero';
+//var connectionString = process.env.DATABASE_URL || 'postgres://postgres:123456@localhost:5432/mensajero';
 
-var client = new pg.Client(connectionString);
-client.connect();
+//var client = new pg.Client(connectionString);
+//client.connect();
 
 
 
@@ -116,9 +116,9 @@ setInterval(function(){
 					//io.sockets.emit('updaterooms', rooms, agentroom);
 					//console.log('Se conecto el usuario: ' + username);
 
-					var query = client.query("INSERT INTO msjsolicitudes(usuario,mensaje,fechahora) VALUES ($1,$2,CURRENT_TIMESTAMP)", [username,'se conecto el usuario'], function(err, result) {
-			          console.log(result);
-			         })
+					//var query = client.query("INSERT INTO msjsolicitudes(usuario,mensaje,fechahora) VALUES ($1,$2,CURRENT_TIMESTAMP)", [username,'se conecto el usuario'], function(err, result) {
+			        //  console.log(result);
+			        // })
 		            userlist.splice(posusername,1);
 		            break;
 	  		   }    
@@ -244,9 +244,9 @@ io.sockets.on('connection', function (socket) {
 			socket.emit('updaterooms', agentnames, agentroom);
 			console.log('Se conecto el usuario: ' + username);
 
-			var query = client.query("INSERT INTO msjsolicitudes(usuario,mensaje,fechahora) VALUES ($1,$2,CURRENT_TIMESTAMP)", [username,'se conecto el usuario'], function(err, result) {
-	          console.log(result);
-	         })
+			//var query = client.query("INSERT INTO msjsolicitudes(usuario,mensaje,fechahora) VALUES ($1,$2,CURRENT_TIMESTAMP)", [username,'se conecto el usuario'], function(err, result) {
+	        //  console.log(result);
+	        // })
 
         }
       }
