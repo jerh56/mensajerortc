@@ -1,5 +1,5 @@
 <head>
-  
+  <link rel="stylesheet" type="text/css" href="/css/style.css">
 </head>  
 
 
@@ -56,6 +56,30 @@ $( document ).ready(function() {
 	});
 
 
+socket.on('istyping', function (username, data,pos,roomid) {
+    
+    //alert('sfsefsdf');
+    if (roomid == null) {
+      pos = pos;
+    }
+      else{
+      pos = roomid;
+    }
+    console.log(pos);
+    console.log(roomid);
+    console.log(username);
+    console.log(data);
+    console.log('escribiendo');
+
+    
+    
+       $('#tab-' + pos).text( username + 'esta escribiendo');
+       settimetodrop(username,pos);        
+
+  });
+
+
+
    socket.on('newuser', function (emisor, username, roomid,pos) {
 		
 		socket.emit('addagentroom', roomid, agentname,username, pos);
@@ -72,7 +96,7 @@ $( document ).ready(function() {
       
 		//$('#divbody').append('<div id ="box_conversation' + pos + '" style="float:left;width:600px;height:250px;overflow:auto;padding:10px;"> <div id="conversation'+pos +'"></div></div><div style="float:bottom"> <input id="data' + pos +'" style="width:600px;" /> <input type="button" id="datasend' + pos +'" value="enviar" /></div>');
 
-		$('#tabsmsj').append('<li><input type="radio" checked name="tabs" id="tab'+pos+'"><label for="tab'+pos+'">' + username +'</label><div id="tab-content'+pos+'" class="tab-content animated fadeIn"> <div id ="box_conversation' + pos + '" style="float:left;width:600px;height:250px;overflow:auto;padding:10px;"> <div id="conversation'+pos +'"></div></div><div style="float:bottom"> <input id="data' + pos +'" style="width:600px;" /> <input type="button" id="datasend' + pos +'" value="enviar" /></div></div></li>');
+		$('#tabsmsj').append('<li><input type="radio" checked name="tabs" id="tab'+pos+'"><label id="tab-' + pos + '" for="tab'+pos+'">' + username +'</label><div id="tab-content'+pos+'" class="tab-content animated fadeIn"> <div id ="box_conversation' + pos + '" style="float:left;width:600px;height:250px;overflow:auto;padding:10px;"> <div id="conversation'+pos +'"></div></div><div style="float:bottom"> <input id="data' + pos +'" style="width:600px;" /> <input type="button" id="datasend' + pos +'" value="enviar" /></div></div></li>');
 
 
 		var script   = document.createElement("script");
@@ -105,6 +129,15 @@ $( document ).ready(function() {
 		socket.emit('switchRoom', room);
 	}
 
+function settimetodrop(username,pos){
+  console.log(pos);
+  setTimeout(function(username,pos){ 
+     $('#tab-' + pos).text( username);
+     alert(username);
+   }, 2000);
+   
+}
+  
 	// on load of page
 	$(function(){
 		$('#data').focus(); // al cargar por primera vez manda el enfoque al textbox data 
@@ -131,6 +164,8 @@ $( document ).ready(function() {
 		
 	});
  });
+
+
 </script>
 
 <div id = "divbody">
