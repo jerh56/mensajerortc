@@ -36,7 +36,7 @@ $( document ).ready(function() {
     console.log(username);
     console.log(data);
     var strTab =  $('#tab-' + pos).text;
-    $('#tab-' + pos).text(  strSlice(0, strTab.lastIndexOf("esta escribiendo")-1)); // quita el mensaje de que el usuario esta escribiendo
+    $('#tab-' + pos).text(  strTab.slice(0, strTab.lastIndexOf("esta escribiendo")-1)); // quita el mensaje de que el usuario esta escribiendo
      
 		if (username === agentname){
 		   $('#conversation' + pos).append('<p class="triangle-isosceles"> <b>'+username + ':</b> ' + data + '</p>');
