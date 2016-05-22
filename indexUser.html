@@ -40,6 +40,7 @@
 
 	});
 
+   
 	// listener, whenever the server emits 'updaterooms', this updates the room the client is in
 	socket.on('updaterooms', function(rooms, current_room) {
 		$('#agents').empty();
@@ -85,6 +86,7 @@
 	<div id="agents"></div>
 </div>
 <div id ="box_conversation" style="float:left;width:600px;height:250px;overflow:auto;padding:10px;">
+	<p id="msj_type"></p>
 	<div id="conversation"></div>
 </div>
 <div style="float:bottom">

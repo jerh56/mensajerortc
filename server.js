@@ -395,11 +395,12 @@ io.sockets.on('connection', function (socket) {
 			// preguntar si es usuario para avisar al agente que se desconecto
 
 			
-			io.sockets.in(socket.room).emit('updatechat', 'MENSAJERO RTC', "Se desconecto el usuario " + socket.username, socket.posRoom);
+			io.sockets.in(socket.room).emit('updatechat', 'MENSAJERO RTC', "Se desconecto el usuario " + socket.username, socket.posRoom,socket.room);
 			console.log("Se desconecto el usuario " + socket.username)
 			
 			
 			socket.broadcast.emit('updatechat', 'MENSAJERO RTC', socket.username + ' se ha desconectado');
+			
 			socket.leave(socket.room);
 			console.log('Se desconecto el usuario: ' + socket.username);
 
