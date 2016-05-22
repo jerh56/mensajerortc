@@ -41,6 +41,7 @@ $( document ).ready(function() {
 	    }
 	    else{
 	    	$('#conversation' + pos).append('<p class="triangle-isosceles top"> <b>'+ '>>' + username + ':</b> ' + data + '</p>');
+        $('#tab-' + pos).text( username ); //quita el mensaje de que el usuario esta escribiendo
 	   } 
 		//Getting the element's new height now
 		//alert(data + '  ' + pos);
