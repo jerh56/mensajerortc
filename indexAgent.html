@@ -35,8 +35,13 @@ $( document ).ready(function() {
     console.log(roomid);
     console.log(username);
     console.log(data);
-    var strTab =  $('#tab-' + pos);
-    $('#tab-' + pos).text(  strTab.text.slice(0, strTab.text.lastIndexOf("esta escribiendo")-1)); // quita el mensaje de que el usuario esta escribiendo
+    
+
+    var strTab =  $('#tab-' + pos).text();
+    if (strTab.lastIndexOf("esta escribiendo") >= 0){
+       $('#tab-' + pos).text(  strTab.slice(0, strTab.lastIndexOf("esta escribiendo")-1)); // quita el mensaje de que el usuario esta escribiendo   
+    } 
+   
      
 		if (username === agentname){
 		   $('#conversation' + pos).append('<p class="triangle-isosceles"> <b>'+username + ':</b> ' + data + '</p>');
