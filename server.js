@@ -72,7 +72,7 @@ var currentroom ="";
 
 //Cada ciertos milisegundos ejecuta esta funcion para buscar agentes disponibles
 setInterval(function(){
-  console.log('test');
+  //console.log('test');
   
   var agentroom = '0';
   var posRoom = 0;
@@ -133,7 +133,8 @@ setInterval(function(){
 io.sockets.on('connection', function (socket) {
     var socketId = socket.id;
     var clientIp = socket.request.connection.remoteAddress;
-    console.log(socket.id);
+    console.log('Id: ' + socket.id);
+    console.log('Id: ' + socket.client.id);
     console.log(clientIp);
 	// when the client emits 'adduser', this listens and executes
 
